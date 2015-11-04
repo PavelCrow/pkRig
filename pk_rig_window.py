@@ -415,7 +415,7 @@ class PkRigWindow(listExample_form, listExample_base):
 			#layout.addWidget(l)
 
 		#layout.addStretch() 1 2
-		
+		sdfsddsfd
 
 			
 		
