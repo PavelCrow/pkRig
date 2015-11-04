@@ -413,9 +413,8 @@ class PkRigWindow(listExample_form, listExample_base):
 			#l = QtGui.QLabel(attr)
 			
 			#layout.addWidget(l)
-
+dfgfdgfgdfg11111
 		#layout.addStretch() 1 2
-		sdfsddsfd
 
 			
 		
