@@ -35,7 +35,10 @@ def loadUiType(uiFile):
 characters = []
 currentCharacter = ""
 characterRoot = ""
+
 modules = []
+modulesData = {}
+
 currentModule = ""
 currentModuleRoot = ""
 
@@ -333,41 +336,51 @@ class PkRigWindow(listExample_form, listExample_base):
 					cmds.namespace( rm=currentModule, deleteNamespaceContent=True )
 
 		self.update_modules_list()
-	
-
-	def update_modules_list(self):
-		global modules
 		
-		modules = []
-		
-		try:
-			childs = cmds.listRelatives(characterRoot)
-			
-			for o in childs:
-				if cmds.attributeQuery("moduleType", node=o, exists=True):
-					n = cmds.getAttr(o+".moduleName")
-					modules.append(n)	
-					
-		except:
-			childs = []
-		
-	
-		self.modules_listWidget.clear()
-		self.modules_listWidget.addItems(modules)
-		item = self.modules_listWidget.item(0)
-		self.modules_listWidget.setCurrentItem(item)
-					
 	def select_moduleRoot(self):
-		
+
 		childs = cmds.listRelatives(characterRoot) or []
-		
+
 		for o in childs:
 			if cmds.attributeQuery("moduleType", node=o, exists=True):
 				n = cmds.getAttr(o+".moduleName")
 				if n == currentModule:
-					cmds.select(o)	
-		
+					cmds.select(o)		
 
+
+
+
+	def update_modules_list(self):
+		global modules, modulesData
+		
+		modules = []
+		modulesData = {}
+		
+		try:
+			childs = cmds.listRelatives(characterRoot)
+
+			for o in childs:
+				
+				if cmds.attributeQuery("moduleType", node=o, exists=True):
+					# get module parametes
+					mName = cmds.getAttr(o+".moduleName")
+					mRoot = o
+					mType = cmds.getAttr(o+".moduleType")
+					
+					# save module data
+					modulesData[mName] = [mRoot, mType]
+					# and modules list
+					modules.append(mName)
+					
+					
+		except:
+			childs = []
+		
+		self.modules_listWidget.clear()
+		self.modules_listWidget.addItems(modules)
+		item = self.modules_listWidget.item(0)
+		self.modules_listWidget.setCurrentItem(item)
+		
 	def choose_parent_module(self):
 		
 		# Copy modules list without current module
@@ -377,13 +390,11 @@ class PkRigWindow(listExample_form, listExample_base):
 		parentModule, ok = QtGui.QInputDialog().getItem(self, 'Set Parent Module', 'Choose parent module:', ms)		
 		
 		if ok and parentModule != "":
+			# set text
 			self.parentModule_lineEdit.setText(parentModule)
-
-	#def moduleConnect_setRootParent(self):
-		#sel = cmds.ls(sl=True)
-		
-		#if len(sel) == 1:
-			#self.rootParent_lineEdit.setText(sel[0])
+			# make connections
+			self.editConnections_setPosersParent(parentModule)
+			
 
 	def fillModuleConnections(self):
 		# hide add connection (maybe unused current module)
@@ -396,36 +407,27 @@ class PkRigWindow(listExample_form, listExample_base):
 		for attr in inAttrs:
 			if attr == "end_poser_inCon":
 				self.end_poser_inCon_frame.setVisible(1)
-		
-		
-		#layout = self.moduleInputConnectuins_verticalLayout
-		
-		## clear old widgets
-		#for i in range(0, layout.count()): 
-			#w = layout.itemAt(i).widget()
-			#if w is not None:
-				#w.close()
-			#else:
-				#layout.removeWidget(w)	
-		
-		## fill layout
-		#for attr in inAttrs:
-			#l = QtGui.QLabel(attr)
-			
-			#layout.addWidget(l)
-dfgfdgfgdfg11111
-		#layout.addStretch() 1 2
 
 			
 		
 		
 		
-	def editConnections_setPosersParent(self):
+	def editConnections_setPosersParent(self, parentModule=""):
 		
-		sel = cmds.ls(sl=True)
-		
-		if len(sel) == 1:
-			self.posersParent_lineEdit.setText(sel[0])
+		# Is connect manually, parent is selected object
+		if parentModule == "" :
+			sel = cmds.ls(sl=True)
+			if len(sel) == 1:
+				parent = sel[0]
+		# else, find parent from coonection in module root object
+		else:
+			parentRoot =  modulesData[parentModule][0]
+			parent = cmds.listConnections( parentRoot + '.posersParent_inCon', d=False, s=True )[0]
+			
+			
+		# set text 2
+		self.posersParent_lineEdit.setText(parent)
+
 		
 	def editConnections_setControlsParent(self):
 		
